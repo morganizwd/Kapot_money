@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     template: "%s | Kapot Money",
   },
   description: "Личные финансы: кошельки, операции, бюджеты и отчёты.",
+  icons: {
+    icon: [{ url: "/kapot-money-logo-passat-b3.png", type: "image/png" }],
+    apple: [{ url: "/kapot-money-logo-passat-b3.png", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

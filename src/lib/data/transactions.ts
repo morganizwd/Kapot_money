@@ -10,6 +10,7 @@ export type TransactionFilters = {
   search?: string;
   from?: string;
   to?: string;
+  limit?: number;
 };
 
 export const getTransactions = cache(async (bookId: string, filters: TransactionFilters = {}) => {
@@ -35,7 +36,7 @@ export const getTransactions = cache(async (bookId: string, filters: Transaction
     )
     .eq("book_id", bookId)
     .order("occurred_at", { ascending: false })
-    .limit(100);
+    .limit(filters.limit ?? 100);
 
   if (filters.kind && filters.kind !== "all") {
     query = query.eq("kind", filters.kind);
