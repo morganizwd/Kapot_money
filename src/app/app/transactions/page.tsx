@@ -20,8 +20,11 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   const walletId = single(params.walletId);
   const categoryId = single(params.categoryId);
   const search = single(params.search);
-  const [wallets, categories] = await Promise.all([getWalletBalances(book.id), getCategories(book.id)]);
-  const transactions = await getTransactions(book.id, { kind: kind === "income" || kind === "expense" || kind === "transfer" || kind === "adjustment" ? kind : "all", walletId, categoryId, search });
+  const [wallets, categories, transactions] = await Promise.all([
+    getWalletBalances(book.id),
+    getCategories(book.id),
+    getTransactions(book.id, { kind: kind === "income" || kind === "expense" || kind === "transfer" || kind === "adjustment" ? kind : "all", walletId, categoryId, search }),
+  ]);
 
   return <PageContainer className="grid gap-6"><header><p className="text-sm text-muted-foreground">Все движения денег</p><h1 className="mt-1 text-[1.75rem] font-bold">История</h1></header><TransactionFilters wallets={wallets} categories={categories} count={transactions.length} /><TransactionList transactions={transactions} book={book} wallets={wallets} categories={categories} /></PageContainer>;
 }

@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { Category, CategoryKind } from "@/lib/types";
 
-export const getCategories = cache(async (bookId: string, kind?: CategoryKind) => {
+async function loadCategories(bookId: string, kind?: CategoryKind) {
   if (!isSupabaseConfigured()) {
     return [];
   }
@@ -28,4 +28,7 @@ export const getCategories = cache(async (bookId: string, kind?: CategoryKind) =
   }
 
   return data satisfies Category[];
-});
+}
+
+export const getCategories = cache(loadCategories);
+export const getCategoriesFresh = loadCategories;

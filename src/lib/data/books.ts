@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { FinanceBook } from "@/lib/types";
 
-export const getFinanceBooks = cache(async () => {
+async function loadFinanceBooks() {
   if (!isSupabaseConfigured()) {
     return [];
   }
@@ -20,7 +20,10 @@ export const getFinanceBooks = cache(async () => {
   }
 
   return data satisfies FinanceBook[];
-});
+}
+
+export const getFinanceBooks = cache(loadFinanceBooks);
+export const getFinanceBooksFresh = loadFinanceBooks;
 
 export const getActiveBook = cache(async (bookId?: string | null) => {
   const books = await getFinanceBooks();
