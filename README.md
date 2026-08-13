@@ -49,10 +49,11 @@ For Vercel Production, set `NEXT_PUBLIC_SITE_URL` to the canonical HTTPS URL of 
 
 1. Create a Supabase project.
 2. Apply migrations from `supabase/migrations/`.
-3. In Supabase Dashboard -> Authentication -> URL Configuration, set Site URL to the production HTTPS URL and configure Auth redirect URLs:
+3. In Supabase Dashboard -> Authentication -> Providers -> Email, turn off `Confirm Email`. New users will be signed in immediately after registration without a confirmation email.
+4. In Supabase Dashboard -> Authentication -> URL Configuration, set Site URL to the production HTTPS URL and configure Auth redirect URLs for password reset:
    - `http://localhost:3000/auth/callback`
    - your production `/auth/callback` URL
-4. Start the app and register a user.
+5. Start the app and register a user.
 
 The migration creates:
 

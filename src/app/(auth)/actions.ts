@@ -67,7 +67,6 @@ export async function signUpAction(_prevState: ActionState, formData: FormData):
     email,
     password,
     options: {
-      emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/app`,
       data: {
         timezone,
         locale,
@@ -91,8 +90,8 @@ export async function signUpAction(_prevState: ActionState, formData: FormData):
   }
 
   return {
-    status: "success",
-    message: "Аккаунт создан. Проверьте почту, если в Supabase включено подтверждение email.",
+    status: "error",
+    message: "Не удалось автоматически войти после регистрации. Отключите Confirm Email в настройках Supabase Auth.",
   };
 }
 
