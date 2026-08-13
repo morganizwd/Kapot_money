@@ -20,5 +20,10 @@ export function isSupabaseConfigured() {
 }
 
 export function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim() || process.env.VERCEL_URL?.trim();
+  const rawUrl = configuredUrl || vercelUrl || "http://localhost:3000";
+  const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+
+  return url.replace(/\/$/, "");
 }

@@ -43,11 +43,13 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 `SUPABASE_SERVICE_ROLE_KEY` is optional and must stay server-only. It is used only by integration tests or trusted maintenance scripts.
 
+For Vercel Production, set `NEXT_PUBLIC_SITE_URL` to the canonical HTTPS URL of the deployed app. The app also falls back to Vercel's deployment URL when this variable is absent, but the explicit canonical URL is recommended.
+
 ## Supabase Setup
 
 1. Create a Supabase project.
 2. Apply migrations from `supabase/migrations/`.
-3. Configure Auth redirect URLs:
+3. In Supabase Dashboard -> Authentication -> URL Configuration, set Site URL to the production HTTPS URL and configure Auth redirect URLs:
    - `http://localhost:3000/auth/callback`
    - your production `/auth/callback` URL
 4. Start the app and register a user.
