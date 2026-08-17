@@ -77,6 +77,29 @@ describe.skipIf(!runIntegration)("Supabase RLS", () => {
       expect(aliceTransactionError).toBeNull();
       expect(aliceTransactionId).toBeTruthy();
 
+      const { data: adjustmentId, error: adjustmentError } = await aliceClient.rpc("set_wallet_balance", {
+        p_wallet_id: aliceWallet!.id,
+        p_target_balance_minor: "480000",
+        p_occurred_at: "2026-08-17T12:00:00.000Z",
+        p_note: "Bank reconciliation",
+      });
+      expect(adjustmentError).toBeNull();
+      expect(adjustmentId).toBeTruthy();
+
+      const { data: aliceBalances, error: aliceBalancesError } = await aliceClient.rpc("get_wallet_balances", {
+        p_book_id: aliceBookId!,
+      });
+      expect(aliceBalancesError).toBeNull();
+      expect(aliceBalances?.find((wallet) => wallet.id === aliceWallet!.id)?.current_balance_minor).toBe(480000);
+
+      const { error: crossWalletAdjustmentError } = await bobClient.rpc("set_wallet_balance", {
+        p_wallet_id: aliceWallet!.id,
+        p_target_balance_minor: "0",
+        p_occurred_at: "2026-08-17T12:00:00.000Z",
+        p_note: null,
+      });
+      expect(crossWalletAdjustmentError).not.toBeNull();
+
       const reads = await Promise.all([
         bobClient.from("finance_books").select("id").eq("id", aliceBookId!),
         bobClient.from("wallets").select("id").eq("id", aliceWallet!.id),

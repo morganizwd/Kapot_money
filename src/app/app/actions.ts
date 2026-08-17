@@ -15,6 +15,7 @@ import {
   settingsSchema,
   transactionSchema,
   uuidSchema,
+  walletBalanceAdjustmentSchema,
   walletSchema,
 } from "@/lib/validation/schemas";
 import type { ActionState, TransactionKind } from "@/lib/types";
@@ -100,6 +101,54 @@ export async function createWalletAction(_prevState: ActionState, formData: Form
   revalidatePath("/app");
   revalidatePath("/app/wallets");
   return { status: "success", message: "Кошелёк создан." };
+}
+
+export async function adjustWalletBalanceAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const configurationError = requireSupabase();
+  if (configurationError) return configurationError;
+
+  await requireUser();
+  const parsed = walletBalanceAdjustmentSchema.safeParse(formDataToObject(formData));
+  if (!parsed.success) return { status: "error", message: firstIssue(parsed.error) };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: wallet, error: walletError } = await supabase
+    .from("wallets")
+    .select("currency_code")
+    .eq("id", parsed.data.walletId)
+    .eq("is_archived", false)
+    .single();
+
+  if (walletError || !wallet) {
+    return { status: "error", message: mapSupabaseError(walletError) };
+  }
+
+  let targetBalanceMinor: bigint;
+
+  try {
+    targetBalanceMinor = parseMoney(parsed.data.targetBalance, wallet.currency_code);
+  } catch {
+    return { status: "error", message: "Введите корректный фактический баланс." };
+  }
+
+  const { data: transactionId, error } = await supabase.rpc("set_wallet_balance", {
+    p_wallet_id: parsed.data.walletId,
+    p_target_balance_minor: targetBalanceMinor.toString(),
+    p_occurred_at: asTimestamp(parsed.data.occurredAt),
+    p_note: parsed.data.note || null,
+  });
+
+  if (error) return { status: "error", message: mapSupabaseError(error) };
+
+  revalidatePath("/app");
+  revalidatePath("/app/wallets");
+  revalidatePath("/app/transactions");
+  revalidatePath("/app/reports");
+
+  return {
+    status: "success",
+    message: transactionId ? "Баланс кошелька скорректирован." : "Баланс уже указан верно.",
+  };
 }
 
 export async function createCategoryAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {

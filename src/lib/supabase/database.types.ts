@@ -159,6 +159,15 @@ export type Database = {
         };
         Returns: Array<Wallet & { current_balance_minor: number }>;
       };
+      set_wallet_balance: {
+        Args: {
+          p_wallet_id: string;
+          p_target_balance_minor: string;
+          p_occurred_at?: string;
+          p_note?: string | null;
+        };
+        Returns: string | null;
+      };
       get_period_summary: {
         Args: {
           p_book_id: string;

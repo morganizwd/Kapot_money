@@ -16,11 +16,12 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { ArrowDown, GripVertical, WalletCards } from "lucide-react";
+import { ArrowDown, GripVertical, Plus, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 import { CategoryIcon } from "@/components/app/category-icon";
-import { MoneyAmount, SectionHeader } from "@/components/app/mobile-ui";
+import { BottomSheet, MoneyAmount, SectionHeader } from "@/components/app/mobile-ui";
 import { QuickTransactionSheet } from "@/components/app/quick-transaction-sheet";
+import { CategoryForm } from "@/components/forms/category-form";
 import { cn } from "@/lib/utils";
 import { getDropHint, isAllowedDropTarget, resolveDropAction, type DragEntity, type OperationIntent } from "@/lib/finance/drag-drop";
 import type { Category, FinanceBook, WalletBalance } from "@/lib/types";
@@ -34,6 +35,7 @@ export function FinanceFlow({ book, wallets, categories }: { book: FinanceBook; 
   const [activeEntity, setActiveEntity] = useState<DragEntity | null>(null);
   const [overEntity, setOverEntity] = useState<DragEntity | null>(null);
   const [intent, setIntent] = useState<OperationIntent | null>(null);
+  const [newCategoryKind, setNewCategoryKind] = useState<"income" | "expense" | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
@@ -92,7 +94,7 @@ export function FinanceFlow({ book, wallets, categories }: { book: FinanceBook; 
           <p className="mt-1 text-sm leading-5 text-muted-foreground" aria-live="polite">{getDropHint(activeEntity, overEntity)}</p>
           <div className="mt-5 grid gap-5">
             <FlowGroup title="Доходы" description="Перетащите на кошелёк">
-              {incomeCategories.length === 0 ? <FlowEmpty>Добавьте источник дохода</FlowEmpty> : <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-4">{incomeCategories.map((category) => <IncomeCategoryCard key={category.id} category={category} isDragging={activeEntity?.id === category.id && activeEntity.type === "income-category"} onTap={() => activeWallets[0] && openTapIntent({ kind: "income", categoryId: category.id, walletId: activeWallets[0].id })} />)}</div>}
+              <div className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-4">{incomeCategories.map((category) => <IncomeCategoryCard key={category.id} category={category} isDragging={activeEntity?.id === category.id && activeEntity.type === "income-category"} onTap={() => activeWallets[0] && openTapIntent({ kind: "income", categoryId: category.id, walletId: activeWallets[0].id })} />)}<AddCategoryCard kind="income" onClick={() => setNewCategoryKind("income")} /></div>
             </FlowGroup>
 
             <FlowGroup title="Кошельки" description="На расход или другой кошелёк">
@@ -100,13 +102,14 @@ export function FinanceFlow({ book, wallets, categories }: { book: FinanceBook; 
             </FlowGroup>
 
             <FlowGroup title="Расходы" description="Перетащите сюда кошелёк">
-              {expenseCategories.length === 0 ? <FlowEmpty>Добавьте категорию расходов</FlowEmpty> : <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{expenseCategories.map((category) => <ExpenseCategoryCard key={category.id} category={category} source={activeEntity} isOver={overEntity?.id === category.id && overEntity.type === "expense-category"} onTap={() => activeWallets[0] && openTapIntent({ kind: "expense", walletId: activeWallets[0].id, categoryId: category.id })} />)}</div>}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{expenseCategories.map((category) => <ExpenseCategoryCard key={category.id} category={category} source={activeEntity} isOver={overEntity?.id === category.id && overEntity.type === "expense-category"} onTap={() => activeWallets[0] && openTapIntent({ kind: "expense", walletId: activeWallets[0].id, categoryId: category.id })} />)}<AddCategoryCard kind="expense" onClick={() => setNewCategoryKind("expense")} /></div>
             </FlowGroup>
           </div>
         </section>
         <DragOverlay dropAnimation={null}>{activeEntity ? <FinanceDragOverlay entity={activeEntity} wallet={walletsById.get(activeEntity.id)} /> : null}</DragOverlay>
       </DndContext>
       {intent ? <QuickTransactionSheet book={book} wallets={activeWallets} categories={categories} intent={intent} onClose={() => setIntent(null)} /> : null}
+      {newCategoryKind ? <BottomSheet title={newCategoryKind === "income" ? "Новая категория дохода" : "Новая категория расхода"} onClose={() => setNewCategoryKind(null)}><CategoryForm book={book} categories={categories} defaultKind={newCategoryKind} onSuccess={() => setNewCategoryKind(null)} /></BottomSheet> : null}
     </div>
   );
 }
@@ -117,6 +120,10 @@ function FlowGroup({ title, description, children }: { title: string; descriptio
 
 function FlowEmpty({ children }: { children: React.ReactNode }) {
   return <div className="rounded-[var(--radius-control)] border border-dashed border-border bg-muted px-3 py-4 text-center text-sm text-muted-foreground">{children}</div>;
+}
+
+function AddCategoryCard({ kind, onClick }: { kind: "income" | "expense"; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className={cn("flex min-h-[84px] min-w-0 flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] border border-dashed px-2 text-center text-xs font-semibold transition hover:bg-muted active:scale-[0.98]", kind === "income" ? "border-success/40 text-success" : "border-primary/40 text-primary")}><span className="grid size-9 place-items-center rounded-xl bg-panel shadow-sm"><Plus aria-hidden className="size-5" /></span><span className="line-clamp-2">Добавить категорию</span></button>;
 }
 
 function IncomeCategoryCard({ category, isDragging, onTap }: { category: Category; isDragging: boolean; onTap: () => void }) {

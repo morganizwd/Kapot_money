@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { registerSchema, transactionSchema, walletSchema } from "@/lib/validation/schemas";
+import { registerSchema, transactionSchema, walletBalanceAdjustmentSchema, walletSchema } from "@/lib/validation/schemas";
 
 const uuid = "11111111-1111-4111-8111-111111111111";
 
@@ -40,6 +40,17 @@ describe("validation schemas", () => {
       amount: "12.50",
       currencyCode: "BYN",
       occurredAt: "2026-08-13",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("allows a negative target balance for wallet corrections", () => {
+    const result = walletBalanceAdjustmentSchema.safeParse({
+      walletId: uuid,
+      targetBalance: "-125,50",
+      occurredAt: "2026-08-17",
+      note: "Balance check",
     });
 
     expect(result.success).toBe(true);

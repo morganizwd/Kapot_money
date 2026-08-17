@@ -15,6 +15,12 @@ export const moneyInputSchema = z
   .min(1, "Введите сумму")
   .regex(/^\d+([,.]\d+)?$/, "Введите корректную сумму");
 
+export const signedMoneyInputSchema = z
+  .string()
+  .trim()
+  .min(1, "Введите сумму")
+  .regex(/^-?\d+([,.]\d+)?$/, "Введите корректную сумму");
+
 export const authSchema = z.object({
   email: z.email("Введите корректный email").transform((value) => value.toLowerCase()),
   password: z.string().min(8, "Пароль должен быть не короче 8 символов"),
@@ -70,6 +76,13 @@ export const walletSchema = z.object({
   openingBalance: moneyInputSchema.default("0"),
   openingBalanceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   includeInNetWorth: z.coerce.boolean().default(true),
+});
+
+export const walletBalanceAdjustmentSchema = z.object({
+  walletId: uuidSchema,
+  targetBalance: signedMoneyInputSchema,
+  occurredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  note: z.string().trim().max(500).optional(),
 });
 
 export const categorySchema = z.object({
